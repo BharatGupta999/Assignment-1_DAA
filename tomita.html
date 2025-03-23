@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bron-Kerbosch Algorithm Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        canvas {
+            margin-top: 20px;
+            margin-bottom: 40px;
+        }
+        pre {
+            text-align: left;
+            background: #eee;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .chart-container {
+            margin-bottom: 30px;
+        }
+        .summary {
+            background-color: #f0f8ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .dataset-container {
+            border-left: 5px solid #3498db;
+            padding-left: 15px;
+            margin-bottom: 30px;
+        }
+        .execution-time {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .comparison-section {
+            margin-top: 40px;
+            margin-bottom: 40px;
+            text-align: left;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tomita Algorithm Report</h1>
+        
+        <div class="summary">
+            <h2>Performance Summary</h2>
+            <p>This report analyzes the Bron-Kerbosch algorithm's performance on three different datasets. The algorithm is used to find all maximal cliques in undirected graphs.</p>
+        </div>
+
+        <div class="comparison-section">
+            <h2>Execution Time Comparison</h2>
+            <p>The chart below compares the execution times across all three datasets:</p>
+            <canvas id="executionTimeChart"></canvas>
+            
+            <table>
+                <tr>
+                    <th>Dataset</th>
+                    <th>Execution Time (s)</th>
+                    <th>Largest Clique Size</th>
+                    <th>Total Maximal Cliques</th>
+                </tr>
+                <tr>
+                    <td>ERON DATASET</td>
+                    <td>9.09</td>
+                    <td>20</td>
+                    <td>226,859</td>
+                </tr>
+                <tr>
+                    <td>VOTE DATASET</td>
+                    <td>1.44</td>
+                    <td>17</td>
+                    <td>459,003</td>
+                </tr>
+                <tr>
+                    <td>SKITTER DATASET</td>
+                    <td>19,226.05</td>
+                    <td>67</td>
+                    <td>37,322,355</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="dataset-container">
+            <h2>ERON DATASET</h2>
+            <p><strong>Largest Clique Size:</strong> 20</p>
+            <p><strong>Total Number of Maximal Cliques:</strong> 226,859</p>
+            <p><strong>Execution Time:</strong> <span class="execution-time">9.095917 seconds</span></p>
+            <div class="chart-container">
+                <h3>Clique Size Distribution</h3>
+                <canvas id="histogram1"></canvas>
+            </div>
+        </div>
+        
+        <div class="dataset-container">
+            <h2>VOTE DATASET</h2>
+            <p><strong>Largest Clique Size:</strong> 17</p>
+            <p><strong>Total Number of Maximal Cliques:</strong> 459,003</p>
+            <p><strong>Execution Time:</strong> <span class="execution-time">1.448420 seconds</span></p>
+            <div class="chart-container">
+                <h3>Clique Size Distribution</h3>
+                <canvas id="histogram2"></canvas>
+            </div>
+        </div>
+        
+        <div class="dataset-container">
+            <h2>SKITTER DATASET</h2>
+            <p><strong>Largest Clique Size:</strong> 67</p>
+            <p><strong>Total Number of Maximal Cliques:</strong> 37,322,355</p>
+            <p><strong>Execution Time:</strong> <span class="execution-time">19,226.058231 seconds</span></p>
+            <div class="chart-container">
+                <h3>Clique Size Distribution</h3>
+                <canvas id="histogram3"></canvas>
+            </div>
+        </div>
+        
+        <h2>Tomita Algorithm Implementation</h2>
+        <pre><code>
+            #include <iostream>
+                #include <vector>
+                #include <algorithm>
+                #include <ctime>
+                #include <fstream>
+                #include <map>
+                #include <iomanip>
+                #include <unordered_set>
+                
+                using namespace std;
+                
+                const int MAX_VERTICES = 100000;
+                
+                class Graph {
+                private:
+                    vector<unordered_set<int>> adj;
+                    int n;
+                
+                public:
+                    Graph(int num_vertices) : n(num_vertices) {
+                        adj.resize(n);
+                    }
+                
+                    void addEdge(int u, int v) {
+                        if (u >= n || v >= n) {
+                            int new_size = max(u, v) + 1;
+                            adj.resize(new_size);
+                            n = new_size;
+                        }
+                        adj[u].insert(v);
+                        adj[v].insert(u);  
+                    }
+                
+                    bool isAdjacent(int u, int v) const {
+                        if (u >= n || v >= n) return false;
+                        return adj[u].find(v) != adj[u].end();
+                    }
+                
+                    const unordered_set<int>& getNeighbors(int v) const {
+                        return adj[v];
+                    }
+                
+                    int getNumVertices() const { return n; }
+                };
+                
+                class MaximalCliqueEnumerator {
+                private:
+                    const Graph& graph;
+                    vector<int> Q; 
+                    long long clique_count;
+                    bool print_cliques;
+                    int largest_clique_size;
+                    map<int, int> clique_size_distribution;
+                
+                    
+                    vector<bool> in_subg;
+                    vector<bool> in_cand;
+                    vector<bool> in_temp;
+                
+                    // here i am Find pivot vertex that maximizes |CAND ∩ Γ(u)|
+                    int findPivot(const vector<int>& SUBG, const vector<int>& CAND) {
+                        int max_size = -1, pivot = -1;
+                        
+                        for (int u : SUBG) {
+                            int count = 0;
+                            const auto& neighbors = graph.getNeighbors(u);
+                            
+                            for (int v : CAND) {
+                                if (neighbors.find(v) != neighbors.end()) {
+                                    count++;
+                                }
+                            }
+                            
+                            if (count > max_size) {
+                                max_size = count;
+                                pivot = u;
+                            }
+                        }
+                        
+                        return pivot;
+                    }
+                
+                   
+                    void EXPAND(vector<int>& SUBG, vector<int>& CAND, vector<int>& FINI) {
+                      
+                        if (SUBG.empty()) {
+                            clique_count++;
+                            largest_clique_size = max(largest_clique_size, (int)Q.size());
+                            clique_size_distribution[Q.size()]++;
+                
+                            if (print_cliques) {
+                                cout << "Maximal clique " << clique_count << ": ";
+                                for (int v : Q) cout << v << " ";
+                                cout << endl;
+                            }
+                            return;
+                        }
+                
+                        
+                        if (CAND.empty()) return;
+                
+                        
+                        int u = findPivot(SUBG, CAND);
+                        
+                       
+                        vector<int> ext_candidates;
+                        const auto& u_neighbors = graph.getNeighbors(u);
+                        
+                        for (int q : CAND) {
+                            if (u_neighbors.find(q) == u_neighbors.end()) {
+                                ext_candidates.push_back(q);
+                            }
+                        }
+                
+                     
+                        for (int q : ext_candidates) {
+                            
+                            Q.push_back(q);
+                            
+                           
+                            vector<int> SUBGq, CANDq, FINIq;
+                            const auto& q_neighbors = graph.getNeighbors(q);
+                            
+                            SUBGq.reserve(SUBG.size());
+                            CANDq.reserve(CAND.size());
+                            FINIq.reserve(FINI.size());
+                            
+                            for (int v : SUBG) {
+                                if (q_neighbors.find(v) != q_neighbors.end()) {
+                                    SUBGq.push_back(v);
+                                }
+                            }
+                            
+                            for (int v : CAND) {
+                                if (q_neighbors.find(v) != q_neighbors.end()) {
+                                    CANDq.push_back(v);
+                                }
+                            }
+                            
+                            for (int v : FINI) {
+                                if (q_neighbors.find(v) != q_neighbors.end()) {
+                                    FINIq.push_back(v);
+                                }
+                            }
+                            
+                          
+                            EXPAND(SUBGq, CANDq, FINIq);
+                            
+                           
+                            CAND.erase(remove(CAND.begin(), CAND.end(), q), CAND.end());
+                            FINI.push_back(q);
+                            
+                            
+                            Q.pop_back();
+                        }
+                    }
+                
+                public:
+                    MaximalCliqueEnumerator(const Graph& g, bool print = false)
+                        : graph(g), clique_count(0), print_cliques(print), largest_clique_size(0) {
+                       
+                        in_subg.resize(g.getNumVertices(), false);
+                        in_cand.resize(g.getNumVertices(), false);
+                        in_temp.resize(g.getNumVertices(), false);
+                    }
+                
+                    long long enumerate() {
+                        vector<int> SUBG, CAND, FINI;
+                        SUBG.reserve(graph.getNumVertices());
+                        CAND.reserve(graph.getNumVertices());
+                        FINI.reserve(graph.getNumVertices());
+                        
+                        for (int i = 0; i < graph.getNumVertices(); i++) {
+                            SUBG.push_back(i);
+                            CAND.push_back(i);
+                        }
+                
+                        Q.clear();
+                        Q.reserve(graph.getNumVertices());
+                        clique_count = 0;
+                        largest_clique_size = 0;
+                        clique_size_distribution.clear();
+                
+                        clock_t start = clock();
+                        EXPAND(SUBG, CAND, FINI);
+                        clock_t end = clock();
+                
+                        double duration = double(end - start) / CLOCKS_PER_SEC;
+                
+                        cout << "Largest Clique Size: " << largest_clique_size << endl;
+                        cout << "Total Number of Maximal Cliques: " << clique_count << endl;
+                        cout << "Execution Time: " << fixed << setprecision(6) << duration << " seconds" << endl;
+                
+                        cout << "\nDistribution of Clique Sizes:" << endl;
+                        for (const auto& [size, count] : clique_size_distribution) {
+                            cout << "Size " << size << ": " << count << " cliques" << endl;
+                        }
+                
+                        return clique_count;
+                    }
+                };
+                
+                Graph readGraph(const string& filename) {
+                    ifstream file(filename);
+                    int numNodes, numEdges;
+                
+                    if (!file) {
+                        cerr << "Error opening file: " << filename << endl;
+                        exit(1);
+                    }
+                
+                    file >> numNodes >> numEdges;
+                    Graph graph(numNodes);
+                
+                    cout << "Reading graph with " << numNodes << " nodes and " << numEdges << " edges..." << endl;
+                
+                   
+                    int progress_step = max(1, numEdges / 100);
+                    
+                    for (int i = 0; i < numEdges; ++i) {
+                        int u, v;
+                        file >> u >> v;
+                        graph.addEdge(u, v);
+                        
+                        if ((i + 1) % progress_step == 0) {
+                            cout << "\rProgress: " << (i + 1) * 100 / numEdges << "%" << flush;
+                        }
+                    }
+                    cout << "\rProgress: 100%" << endl;
+                
+                    return graph;
+                }
+                
+                Graph readLargeGraph(const string& filename) {
+                    ifstream file(filename);
+                    int numNodes, numEdges;
+                
+                    if (!file) {
+                        cerr << "Error opening file: " << filename << endl;
+                        exit(1);
+                    }
+                
+                    file >> numNodes >> numEdges;
+                    Graph graph(numNodes);
+                
+                    cout << "Reading large graph with " << numNodes << " nodes and " << numEdges << " edges..." << endl;
+                    cout << "This may take a while for very large graphs." << endl;
+                
+                   
+                    int chunk_size = 1000000; 
+                    int chunks = (numEdges + chunk_size - 1) / chunk_size;
+                    
+                    for (int chunk = 0; chunk < chunks; chunk++) {
+                        int start = chunk * chunk_size;
+                        int end = min((chunk + 1) * chunk_size, numEdges);
+                        
+                        cout << "\rProcessing chunk " << (chunk + 1) << "/" << chunks << " (" 
+                             << (chunk * 100 / chunks) << "%)" << flush;
+                        
+                        
+                        if (chunk > 0) {
+                            file.clear();
+                            file.seekg(0);
+                            file >> numNodes >> numEdges; 
+                            for (int i = 0; i < start; i++) {
+                                int u, v;
+                                file >> u >> v;
+                            }
+                        }
+                        
+                        
+                        for (int i = start; i < end; i++) {
+                            int u, v;
+                            file >> u >> v;
+                            graph.addEdge(u, v);
+                        }
+                    }
+                    cout << "\rProcessing complete: 100%" << endl;
+                
+                    return graph;
+                }
+                
+                int main(int argc, char* argv[]) {
+                    if (argc < 2) {
+                        cerr << "Usage: " << argv[0] << " <graph_file> [print_cliques] [large]" << endl;
+                        return 1;
+                    }
+                    
+                    const string filename = argv[1];
+                    const bool print_cliques = (argc > 2 && string(argv[2]) == "print");
+                    const bool large_graph = (argc > 3 && string(argv[3]) == "large");
+                    
+                    Graph graph = large_graph ? readLargeGraph(filename) : readGraph(filename);
+                    cout << "Graph loaded with " << graph.getNumVertices() << " vertices." << endl;
+                    
+                  
+                    if (graph.getNumVertices() > 50000) {
+                        cout << "Warning: Graph is very large. The algorithm may take a long time or run out of memory." << endl;
+                        cout << "Consider using a sampling approach or a distributed algorithm for large graphs." << endl;
+                        cout << "Do you want to continue? (y/n): ";
+                        char response;
+                        cin >> response;
+                        if (response != 'y' && response != 'Y') {
+                            cout << "Exiting program." << endl;
+                            return 0;
+                        }
+                    }
+                
+                    MaximalCliqueEnumerator enumerator(graph, print_cliques);
+                    enumerator.enumerate();
+                
+                    return 0;
+                }
+                
+                
+        </code></pre>
+    </div>
+
+    <script>
+        function generateHistogram(canvasId, labels, data) {
+            new Chart(document.getElementById(canvasId), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Number of Cliques',
+                        data: data,
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Distribution of Clique Sizes'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Generate execution time comparison chart
+        new Chart(document.getElementById("executionTimeChart"), {
+            type: 'bar',
+            data: {
+                labels: ['ERON', 'VOTE', 'SKITTER'],
+                datasets: [{
+                    label: 'Execution Time (seconds)',
+                    data: [9.09, 1.44,19226.05],
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(153, 102, 255, 0.6)',
+                        'rgba(255, 99, 132, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        type: 'logarithmic',
+                        title: {
+                            display: true,
+                            text: 'Time (seconds) - Log Scale'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Dataset'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Execution Time Comparison (Log Scale)'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Execution Time: ' + context.raw + ' seconds';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        generateHistogram("histogram1", [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+            [14070, 7077, 13319, 18143, 22715, 25896, 24766, 22884, 21393, 17833, 15181, 11487, 7417, 3157, 1178, 286, 41, 10, 6]);
+        
+        generateHistogram("histogram2", [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+            [8656, 13718, 27292, 48416, 68872, 83266, 76732, 54456, 35470, 21736, 11640, 5449, 2329, 740, 208, 23]);
+        
+        generateHistogram("histogram3", [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+            [2319807, 3171609, 1823321, 939336, 684873, 598284, 588889, 608937, 665661, 728098, 798073, 877282, 945194, 980831, 939987, 839330, 729601, 639413, 600192]);
+    </script>
+</body>
+</html>

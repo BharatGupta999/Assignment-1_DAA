@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bron-Kerbosch Algorithm Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        canvas {
+            margin-top: 20px;
+            margin-bottom: 40px;
+        }
+        pre {
+            text-align: left;
+            background: #eee;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .chart-container {
+            margin-bottom: 30px;
+        }
+        .summary {
+            background-color: #f0f8ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .dataset-container {
+            border-left: 5px solid #3498db;
+            padding-left: 15px;
+            margin-bottom: 30px;
+        }
+        .execution-time {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .comparison-section {
+            margin-top: 40px;
+            margin-bottom: 40px;
+            text-align: left;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bron-Kerbosch Degenracy Algorithm Report</h1>
+        
+        <div class="summary">
+            <h2>Performance Summary</h2>
+            <p>This report analyzes the Bron-Kerbosch algorithm's performance on three different datasets. The algorithm is used to find all maximal cliques in undirected graphs.</p>
+        </div>
+
+        <div class="comparison-section">
+            <h2>Execution Time Comparison</h2>
+            <p>The chart below compares the execution times across all three datasets:</p>
+            <canvas id="executionTimeChart"></canvas>
+            
+            <table>
+                <tr>
+                    <th>Dataset</th>
+                    <th>Execution Time (s)</th>
+                    <th>Largest Clique Size</th>
+                    <th>Total Maximal Cliques</th>
+                </tr>
+                <tr>
+                    <td>ERON DATASET</td>
+                    <td>7.02</td>
+                    <td>20</td>
+                    <td>226,859</td>
+                </tr>
+                <tr>
+                    <td>Vote DATASET</td>
+                    <td>8.76</td>
+                    <td>17</td>
+                    <td>459,003</td>
+                </tr>
+                <tr>
+                    <td>SKITTER DATASET</td>
+                    <td>7889.60</td>
+                    <td>67</td>
+                    <td>37,322,355</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="dataset-container">
+            <h2>ERON DATSET</h2>
+            <p><strong>Largest Clique Size:</strong> 20</p>
+            <p><strong>Total Number of Maximal Cliques:</strong> 226,859</p>
+            <p><strong>Execution Time:</strong> <span class="execution-time">7.024321 seconds</span></p>
+            <div class="chart-container">
+                <h3>Clique Size Distribution</h3>
+                <canvas id="histogram1"></canvas>
+            </div>
+        </div>
+        
+        <div class="dataset-container">
+            <h2>VOTE DATASET</h2>
+            <p><strong>Largest Clique Size:</strong> 17</p>
+            <p><strong>Total Number of Maximal Cliques:</strong> 459,003</p>
+            <p><strong>Execution Time:</strong> <span class="execution-time">8.760175 seconds</span></p>
+            <div class="chart-container">
+                <h3>Clique Size Distribution</h3>
+                <canvas id="histogram2"></canvas>
+            </div>
+        </div>
+        
+        <div class="dataset-container">
+            <h2>SKITTER DATASET</h2>
+            <p><strong>Largest Clique Size:</strong> 67</p>
+            <p><strong>Total Number of Maximal Cliques:</strong> 37,322,355</p>
+            <p><strong>Execution Time:</strong> <span class="execution-time">7889.60347 seconds</span></p>
+            <div class="chart-container">
+                <h3>Clique Size Distribution</h3>
+                <canvas id="histogram3"></canvas>
+            </div>
+        </div>
+        
+        <h2>Bron-Kerbosch Algorithm Implementation(ELS)</h2>
+        <pre><code>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <set>
+#include <unordered_map>
+#include <algorithm>
+#include <chrono>
+#include <map>
+#include <iomanip>
+                
+using namespace std;
+                
+unordered_map<int, set<int>> convertToUndirected(const unordered_map<int, set<int>>& directedGraph) {
+        unordered_map<int, set<int>> undirectedGraph;
+                    for (const auto& [u, neighbors] : directedGraph) {
+                        for (int v : neighbors) {
+                            undirectedGraph[u].insert(v);
+                            undirectedGraph[v].insert(u); 
+                        }
+                    }
+                    return undirectedGraph;
+                }
+                
+              
+                unordered_map<int, set<int>> convertToZeroBased(const unordered_map<int, set<int>>& graph) {
+                    unordered_map<int, int> idMapping;
+                    unordered_map<int, set<int>> zeroBasedGraph;
+                    int index = 0;
+                
+                    for (const auto& [vertex, _] : graph) {
+                        idMapping[vertex] = index++;
+                    }
+                
+                    for (const auto& [vertex, neighbors] : graph) {
+                        int newVertex = idMapping[vertex];
+                        for (int neighbor : neighbors) {
+                            zeroBasedGraph[newVertex].insert(idMapping[neighbor]);
+                        }
+                    }
+                
+                    return zeroBasedGraph;
+                }
+                
+               
+                void BronKerboschPivot(set<int> P, set<int> R, set<int> X,
+                                       const unordered_map<int, set<int>>& graph,
+                                       vector<set<int>>& maximalCliques,
+                                       int& largestCliqueSize,
+                                       map<int, int>& cliqueSizeDistribution) {
+                    if (P.empty() && X.empty()) {
+                       
+                        maximalCliques.push_back(R);
+                        largestCliqueSize = max(largestCliqueSize, static_cast<int>(R.size()));
+                
+                        
+                        cliqueSizeDistribution[R.size()]++;
+                
+                        return;
+                    }
+                
+                    // Here I am Choosing a pivot from P ∪ X
+                    int pivot = -1;
+                    int maxNeighbors = -1;
+                    set<int> unionPX = P;
+                    unionPX.insert(X.begin(), X.end());
+                    for (int u : unionPX) {
+                        int count = 0;
+                        for (int neighbor : graph.at(u)) {
+                            if (P.find(neighbor) != P.end())
+                                count++;
+                        }
+                        if (count > maxNeighbors) {
+                            maxNeighbors = count;
+                            pivot = u;
+                        }
+                    }
+                
+                   
+                    set<int> diffP;
+                    for (int v : P) {
+                        if (graph.at(pivot).find(v) == graph.at(pivot).end())
+                            diffP.insert(v);
+                    }
+                
+                    for (int v : diffP) {
+                        set<int> newP, newR(R), newX;
+                        newR.insert(v);
+                        for (int neighbor : graph.at(v)) {
+                            if (P.find(neighbor) != P.end())
+                                newP.insert(neighbor);
+                            if (X.find(neighbor) != X.end())
+                                newX.insert(neighbor);
+                        }
+                
+                        BronKerboschPivot(newP, newR, newX, graph, maximalCliques, largestCliqueSize, cliqueSizeDistribution);
+                
+                       
+                        P.erase(v);
+                        X.insert(v);
+                    }
+                }
+                
+                // Here i am implementing Bron-Kerbosch algorithm with degeneracy ordering
+                void BronKerboschDegeneracy(const unordered_map<int, set<int>>& graph,
+                                            vector<set<int>>& maximalCliques,
+                                            int& largestCliqueSize,
+                                            map<int, int>& cliqueSizeDistribution) {
+                    vector<pair<int, int>> vertices;
+                    for (const auto& [v, neighbors] : graph) {
+                        vertices.emplace_back(v, neighbors.size());
+                    }
+                    
+                   
+                    sort(vertices.begin(), vertices.end(), [](const pair<int, int>& a, const pair<int, int>& b) {
+                        return a.second < b.second;
+                    });
+                
+                    for (const auto& [vi, _] : vertices) {
+                        set<int> P, X;
+                
+                        for (int neighbor : graph.at(vi)) {
+                            if (neighbor > vi)
+                                P.insert(neighbor);
+                            else
+                                X.insert(neighbor);
+                        }
+                
+                        BronKerboschPivot(P, {vi}, X, graph, maximalCliques, largestCliqueSize, cliqueSizeDistribution);
+                    }
+                }
+                
+              
+                unordered_map<int, set<int>> loadGraph(const string& filename) {
+                    unordered_map<int, set<int>> graph;
+                
+                    ifstream file(filename);
+                    string line;
+                
+                   
+                    getline(file, line);
+                    stringstream ss(line);
+                    int numNodes, numEdges;
+                    ss >> numNodes >> numEdges; 
+                
+                 
+                    while (getline(file, line)) {
+                        stringstream ss(line); 
+                        int u, v;
+                        ss >> u >> v; 
+                
+                        graph[u].insert(v);
+                    }
+                
+                    return graph;
+                }
+                
+                int main() {
+                    string filename = "vote.txt"; // Please Replace with your input file name
+                
+                  
+                    unordered_map<int, set<int>> directedGraph = loadGraph(filename);
+                
+                    
+                    unordered_map<int, set<int>> undirectedGraph = convertToUndirected(directedGraph);
+                
+                   
+                    unordered_map<int, set<int>> zeroBasedGraph = convertToZeroBased(undirectedGraph);
+                
+                    // Run Bron-Kerbosch algorithm with degeneracy ordering
+                    vector<set<int>> maximalCliques;
+                    int largestCliqueSize = 0;
+                    map<int, int> cliqueSizeDistribution;
+                
+                    auto startTime = chrono::high_resolution_clock::now();
+                    
+                    BronKerboschDegeneracy(zeroBasedGraph, maximalCliques, largestCliqueSize, cliqueSizeDistribution);
+                
+                    auto endTime = chrono::high_resolution_clock::now();
+                    
+                    chrono::duration<double> executionTime = endTime - startTime;
+                
+                    // Output results
+                    cout << "Largest Clique Size: " << largestCliqueSize << endl;
+                    cout << "Total Number of Maximal Cliques: " << maximalCliques.size() << endl;
+                    cout << "Execution Time: " << fixed << setprecision(6) << executionTime.count() << " seconds" << endl;
+                
+                   
+                    cout << "\nDistribution of Clique Sizes:" << endl;
+                    for (const auto& [size, count] : cliqueSizeDistribution) {
+                        cout << "Size " << size << ": " << count << " cliques" << endl;
+                    }
+                
+                    return 0;
+                }
+                
+        </code></pre>
+    </div>
+
+    <script>
+        function generateHistogram(canvasId, labels, data) {
+            new Chart(document.getElementById(canvasId), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Number of Cliques',
+                        data: data,
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Distribution of Clique Sizes'
+                        }
+                    }
+                }
+            });
+        }
+
+        
+        new Chart(document.getElementById("executionTimeChart"), {
+            type: 'bar',
+            data: {
+                labels: ['ERON', 'VOTE', 'SKITTER'],
+                datasets: [{
+                    label: 'Execution Time (seconds)',
+                    data: [7.02, 8.76,7889.60],
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(153, 102, 255, 0.6)',
+                        'rgba(255, 99, 132, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        type: 'logarithmic',
+                        title: {
+                            display: true,
+                            text: 'Time (seconds) - Log Scale'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Dataset'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Execution Time Comparison (Log Scale)'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Execution Time: ' + context.raw + ' seconds';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        generateHistogram("histogram1", [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+            [14070, 7077, 13319, 18143, 22715, 25896, 24766, 22884, 21393, 17833, 15181, 11487, 7417, 3157, 1178, 286, 41, 10, 6]);
+        
+        generateHistogram("histogram2", [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+            [8656, 13718, 27292, 48416, 68872, 83266, 76732, 54456, 35470, 21736, 11640, 5449, 2329, 740, 208, 23]);
+        
+        generateHistogram("histogram3", [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+            [2319807, 3171609, 1823321, 939336, 684873, 598284, 588889, 608937, 665661, 728098, 798073, 877282, 945194, 980831, 939987, 839330, 729601, 639413, 600192]);
+    </script>
+</body>
+</html>

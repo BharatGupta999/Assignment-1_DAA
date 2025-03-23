@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorithm Comparison</title>
+    <style>
+        body {
+            background: url('https://source.unsplash.com/random/1920x1080') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            height: auto;
+            min-height: 100vh;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            width: 90vw;
+            height: auto;
+            min-height: 90vh;
+            padding: 20px;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 50px #0f0;
+            transition: box-shadow 1s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        h1 {
+            text-shadow: 0 0 10px #0ff;
+        }
+        .sections {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            height: 100%;
+        }
+        .comparison, .buttons-section {
+            flex: 1;
+            padding: 20px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+        .button {
+            display: block;
+            width: 80%;
+            margin: 10px auto;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #0ff;
+            background: linear-gradient(45deg, red, green, blue);
+            border: 3px solid #0ff;
+            border-radius: 10px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: box-shadow 0.1s ease-in-out, border-color 0.1s ease-in-out;
+            box-shadow: 0 0 10px #0ff;
+        }
+        .button:hover {
+            background: linear-gradient(45deg, blue, red, green);
+            color: #000;
+            box-shadow: 0 0 20px #0ff;
+        }
+        @keyframes neonGlow {
+            0% { box-shadow: 0 0 10px #0ff; border-color: #0ff; }
+            25% { box-shadow: 0 0 15px #f0f; border-color: #f0f; }
+            50% { box-shadow: 0 0 20px #ff0; border-color: #ff0; }
+            75% { box-shadow: 0 0 15px #f00; border-color: #f00; }
+            100% { box-shadow: 0 0 10px #0ff; border-color: #0ff; }
+        }
+        .button {
+            animation: neonGlow 3s infinite alternate;
+        }
+        .comparison p {
+            text-align: left;
+            max-width: 90%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Algorithm Comparison</h1>
+        <div class="sections">
+            <div class="comparison">
+                <p><strong>Explanation of Chiba, Bron-Kerbosch (with Degeneracy), and Tomita Algorithms</strong></p>
+                <p>These three algorithms are used for finding maximal cliques in an undirected graph. A clique is a subset of vertices where every vertex is connected to every other vertex. A maximal clique is a clique that cannot be extended by adding more vertices.</p>
+                <p><strong>1️⃣ Chiba and Nishizeki Algorithm (Chiba 1985)</strong></p>
+                <p>This algorithm is specifically designed for enumerating cliques efficiently using edge-based processing rather than vertex-based processing.</p>
+                <ul>
+                    <li>Uses adjacency lists instead of adjacency matrices.</li>
+                    <li>Orders the graph by degeneracy, processing vertices in increasing order of degree.</li>
+                    <li>Iterates over edges and extends them to form cliques.</li>
+                    <li>Precomputes triangle lists (3-cliques) and extends them to k-cliques.</li>
+                    <li>Works well on sparse graphs where the maximum clique size is small.</li>
+                </ul>
+                <p><strong>2️⃣ Bron-Kerbosch Algorithm (with Degeneracy Ordering)</strong></p>
+                <p>A recursive backtracking algorithm used to find all maximal cliques in an undirected graph.</p>
+                <ul>
+                    <li>Sorts vertices in increasing order of degree (degeneracy ordering).</li>
+                    <li>Uses pivoting to reduce the number of recursive calls.</li>
+                    <li>Processes high-degree vertices last, reducing the number of recursive calls.</li>
+                </ul>
+                <p><strong>3️⃣ Tomita’s Algorithm (Tomita 2006)</strong></p>
+                <p>Another Bron-Kerbosch-style algorithm that improves pruning using vertex ordering heuristics.</p>
+                <ul>
+                    <li>Sorts vertices in descending order of degree.</li>
+                    <li>Uses the highest-degree vertex as a pivot.</li>
+                    <li>Branches only on vertices that are not neighbors of the pivot.</li>
+                </ul>
+            </div>
+            <div class="buttons-section">
+                <div class="buttons">
+                    <button class="button" onclick="window.location.href='Bron-Kerbosch.html'">Bron–Kerbosch algorithm</button>
+<button class="button" onclick="window.location.href='chiba.html'">Arboricity and Subgraph Listing Algorithms</button>
+<button class="button" onclick="window.location.href='tomita.html'">Tomita Algorithm</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
